@@ -1296,7 +1296,7 @@
               </div>
 
               <!-- RESULTS -->
-              <div id="resultsPanel">
+              <div id="resultsPanel" style="display: none">
                 <div class="result-header">
                   // Test complete ✓ —
                   <span id="resultDate" style="color: var(--text-dim)"
@@ -1676,6 +1676,7 @@
       function startTest() {
         state.started = true;
         document.getElementById("startPrompt").style.display = "none";
+        document.getElementById("wordDisplay").style.display = "block";
         document.getElementById("liveWpmDisplay").style.display = "block";
 
         state.timer = setInterval(() => {
@@ -1724,7 +1725,7 @@
         document.getElementById("resWpm").textContent = wpm;
         document.getElementById("resAcc").textContent = acc;
         document.getElementById("resRaw").textContent = raw;
-        document.getElementById("resChars").textContent = state.correctChars;
+        document.getElementById("resChars").textContent = correct;
         document.getElementById("resultDate").textContent =
           new Date().toLocaleTimeString();
         document.getElementById("resultsPanel").style.display = "block";
@@ -1782,7 +1783,7 @@
         document.getElementById("timeLeft").textContent = timeLimit;
         document.getElementById("timeCountdown").style.color = "var(--primary)";
         document.getElementById("timeCountdown").style.display = "flex";
-        document.getElementById("wordDisplay").style.display = "block";
+        document.getElementById("wordDisplay").style.display = "none";
         document.getElementById("resultsPanel").style.display = "none";
         document.getElementById("startPrompt").style.display = "block";
         document.getElementById("liveWpmDisplay").style.display = "none";
@@ -1938,13 +1939,6 @@
       function showLeaderboard() {
         showNotification("Leaderboard", "Coming soon... push your code first!");
       }
-
-      // Prevent accidental tab navigation
-      document
-        .getElementById("hiddenInput")
-        .addEventListener("keydown", (e) => {
-          if (e.key === "Tab") e.preventDefault();
-        });
 
       // ═══════════════════════════════════════════════
       //  START
