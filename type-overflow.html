@@ -1,1498 +1,1955 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Type Overflow - VSCode Typing Test</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #1e1e1e;
-    --bg2: #252526;
-    --bg3: #2d2d30;
-    --bg4: #3c3c3c;
-    --sidebar: #333333;
-    --titlebar: #3c3c3c;
-    --border: #474747;
-    --primary: #519ABA;
-    --accent: #498BA7;
-    --green: #6A9955;
-    --yellow: #DCDCAA;
-    --orange: #CE9178;
-    --purple: #C586C0;
-    --blue: #4EC9B0;
-    --red: #F44747;
-    --text: #CCCCCC;
-    --text-dim: #858585;
-    --text-dark: #6e6e6e;
-    --tab-active: #1e1e1e;
-    --tab-inactive: #2d2d2d;
-    --correct: #6A9955;
-    --wrong: #F44747;
-    --cursor-color: #AEAFAD;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Ubuntu', 'Droid Sans', sans-serif;
-    font-size: 13px;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    user-select: none;
-  }
-
-  /* TITLE BAR */
-  .titlebar {
-    background: var(--titlebar);
-    height: 30px;
-    display: flex;
-    align-items: center;
-    gap: 0;
-    border-bottom: 1px solid #252526;
-    flex-shrink: 0;
-    position: relative;
-  }
-
-  .titlebar-logo {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .titlebar-logo svg { width: 18px; height: 18px; }
-
-  .titlebar-menus {
-    display: flex;
-    align-items: center;
-    height: 100%;
-  }
-
-  .titlebar-menu {
-    padding: 0 8px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    color: var(--text);
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .titlebar-menu:hover { background: rgba(255,255,255,0.1); }
-
-  .titlebar-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 12px;
-    color: var(--text-dim);
-    pointer-events: none;
-    white-space: nowrap;
-  }
-
-  .titlebar-controls {
-    margin-left: auto;
-    display: flex;
-    height: 100%;
-  }
-
-  .titlebar-btn {
-    width: 46px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 11px;
-  }
-  .titlebar-btn:hover { background: rgba(255,255,255,0.1); }
-  .titlebar-btn.close:hover { background: #e81123; }
-
-  /* TABS */
-  .tabs {
-    background: var(--bg3);
-    display: flex;
-    align-items: flex-end;
-    height: 35px;
-    border-bottom: 1px solid #252526;
-    flex-shrink: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .tab {
-    height: 35px;
-    padding: 0 20px 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    border-right: 1px solid var(--bg);
-    position: relative;
-    white-space: nowrap;
-    flex-shrink: 0;
-    color: var(--text-dim);
-    background: var(--tab-inactive);
-  }
-
-  .tab.active {
-    background: var(--tab-active);
-    color: var(--text);
-    border-top: 1px solid var(--primary);
-  }
-
-  .tab-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-  }
-
-  .tab .close-x {
-    position: absolute;
-    right: 4px;
-    width: 16px;
-    height: 16px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    opacity: 0;
-  }
-  .tab:hover .close-x { opacity: 0.6; }
-  .tab .close-x:hover { background: var(--bg4); opacity: 1; }
-
-  /* LAYOUT */
-  .main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  /* ACTIVITY BAR */
-  .activity-bar {
-    width: 48px;
-    background: var(--bg3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 4px;
-    border-right: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .activity-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-    color: var(--text-dim);
-    font-size: 20px;
-  }
-  .activity-icon:hover, .activity-icon.active { color: var(--text); }
-  .activity-icon.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 2px;
-    height: 24px;
-    background: var(--text);
-  }
-
-  .activity-bottom {
-    margin-top: auto;
-    padding-bottom: 8px;
-  }
-
-  /* SIDEBAR */
-  .sidebar {
-    width: 240px;
-    background: var(--bg2);
-    border-right: 1px solid var(--border);
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .sidebar-header {
-    padding: 12px 12px 6px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    flex-shrink: 0;
-  }
-
-  .sidebar-section {
-    padding: 2px 0;
-  }
-
-  .sidebar-item {
-    padding: 3px 12px 3px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text);
-    position: relative;
-  }
-  .sidebar-item:hover { background: var(--bg4); }
-  .sidebar-item.active { background: #094771; }
-  .sidebar-item .icon { font-size: 14px; width: 16px; text-align: center; }
-
-  .sidebar-folder {
-    padding: 3px 12px 3px 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .sidebar-folder:hover { background: var(--bg4); }
-
-  .sidebar-badge {
-    margin-left: auto;
-    background: var(--primary);
-    color: white;
-    font-size: 10px;
-    padding: 1px 5px;
-    border-radius: 10px;
-    min-width: 16px;
-    text-align: center;
-  }
-
-  .sidebar-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 8px 0;
-  }
-
-  /* EDITOR */
-  .editor {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--bg);
-  }
-
-  /* BREADCRUMB */
-  .breadcrumb {
-    padding: 4px 12px;
-    font-size: 12px;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    background: var(--bg);
-  }
-  .breadcrumb span { cursor: pointer; }
-  .breadcrumb span:hover { color: var(--text); }
-  .breadcrumb .sep { opacity: 0.5; }
-
-  /* EDITOR CONTENT */
-  .editor-content {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-  }
-
-  .line-numbers {
-    width: 50px;
-    background: var(--bg);
-    color: var(--text-dark);
-    font-family: 'Ubuntu Mono', monospace;
-    font-size: 13px;
-    line-height: 22px;
-    text-align: right;
-    padding: 20px 8px 0 0;
-    flex-shrink: 0;
-    user-select: none;
-    overflow: hidden;
-  }
-
-  .line-numbers div { height: 22px; }
-  .line-numbers .active-line { color: var(--text); }
-
-  .editor-main {
-    flex: 1;
-    padding: 20px 0 20px 12px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--bg4) transparent;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* CODE COMMENT HEADER */
-  .code-comment {
-    font-family: 'Ubuntu Mono', monospace;
-    font-size: 13px;
-    line-height: 22px;
-    color: var(--green);
-    margin-bottom: 4px;
-  }
-
-  .code-keyword { color: var(--purple); }
-  .code-string { color: var(--orange); }
-  .code-func { color: var(--yellow); }
-  .code-var { color: #9CDCFE; }
-  .code-num { color: #B5CEA8; }
-  .code-type { color: var(--blue); }
-
-  /* TYPING TEST AREA */
-  .test-container {
-    margin: 16px 0 0 0;
-    position: relative;
-  }
-
-  /* MINI TOOLBAR ABOVE TEST */
-  .test-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
-
-  .toolbar-btn {
-    padding: 4px 10px;
-    font-size: 12px;
-    font-family: 'Ubuntu Mono', monospace;
-    background: transparent;
-    border: none;
-    color: var(--text-dim);
-    cursor: pointer;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.15s;
-  }
-  .toolbar-btn:hover { background: var(--bg3); color: var(--text); }
-  .toolbar-btn.active { color: var(--primary); background: rgba(81,154,186,0.1); }
-
-  .toolbar-sep {
-    width: 1px;
-    height: 16px;
-    background: var(--border);
-    margin: 0 4px;
-  }
-
-  .toolbar-btn .tag { color: var(--text-dark); font-size: 10px; }
-
-  /* TIME DISPLAY */
-  .time-display {
-    font-family: 'Ubuntu Mono', monospace;
-    font-size: 48px;
-    color: var(--primary);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-  }
-  .time-display.hidden { display: none; }
-  .time-unit { font-size: 14px; color: var(--text-dim); }
-
-  /* WORD DISPLAY */
-  #wordDisplay {
-    font-family: 'Ubuntu Mono', monospace;
-    font-size: 22px;
-    line-height: 44px;
-    color: var(--text-dark);
-    position: relative;
-    outline: none;
-    max-height: 132px;
-    overflow: hidden;
-    cursor: text;
-  }
-
-  #wordDisplay .word {
-    display: inline-block;
-    margin-right: 12px;
-    position: relative;
-  }
-
-  #wordDisplay .letter { transition: color 0.05s; }
-  #wordDisplay .letter.correct { color: var(--correct); }
-  #wordDisplay .letter.wrong {
-    color: var(--wrong);
-    text-decoration: underline;
-    text-decoration-color: var(--wrong);
-  }
-  #wordDisplay .letter.pending { color: var(--text-dark); }
-
-  .cursor-caret {
-    display: inline-block;
-    width: 2px;
-    height: 22px;
-    background: var(--cursor-color);
-    vertical-align: middle;
-    position: absolute;
-    animation: blink 1s step-end infinite;
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-
-  /* HIDDEN INPUT */
-  /* RESULTS */
-  #resultsPanel {
-    display: none;
-    font-family: 'Ubuntu Mono', monospace;
-    animation: fadeIn 0.3s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .result-header {
-    color: var(--green);
-    font-size: 13px;
-    margin-bottom: 16px;
-  }
-
-  .result-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .result-box {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    padding: 12px 16px;
-    border-radius: 2px;
-  }
-
-  .result-label {
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .result-value {
-    font-size: 32px;
-    color: var(--primary);
-    font-weight: 700;
-  }
-
-  .result-unit {
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-
-  .retry-btn {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 8px 20px;
-    font-family: 'Ubuntu Mono', monospace;
-    font-size: 13px;
-    cursor: pointer;
-    border-radius: 3px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.15s;
-  }
-  .retry-btn:hover { background: var(--bg4); border-color: var(--primary); color: var(--primary); }
-
-  /* START PROMPT */
-  #startPrompt {
-    color: var(--text-dim);
-    font-size: 13px;
-    font-family: 'Ubuntu Mono', monospace;
-    margin-top: 8px;
-  }
-
-  /* STATUS BAR */
-  .statusbar {
-    height: 22px;
-    background: var(--primary);
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-    font-size: 11px;
-    color: rgba(0,0,0,0.7);
-    gap: 12px;
-    flex-shrink: 0;
-  }
-
-  .statusbar-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .statusbar span { cursor: pointer; white-space: nowrap; }
-  .statusbar span:hover { background: rgba(0,0,0,0.1); }
-
-  /* WPM LIVE */
-  .live-wpm {
-    font-family: 'Ubuntu Mono', monospace;
-    font-size: 20px;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  .live-wpm .wpm-val { color: var(--yellow); }
-
-  /* Minimap */
-  .minimap {
-    width: 80px;
-    background: var(--bg);
-    border-left: 1px solid var(--border);
-    flex-shrink: 0;
-    padding: 20px 8px;
-    overflow: hidden;
-  }
-
-  .minimap-line {
-    height: 3px;
-    margin-bottom: 2px;
-    border-radius: 1px;
-    background: rgba(255,255,255,0.05);
-  }
-  .minimap-line.filled { background: rgba(81,154,186,0.15); }
-  .minimap-line.active { background: rgba(81,154,186,0.4); }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #555; }
-
-  /* NOTIFICATION */
-  .notification {
-    position: fixed;
-    bottom: 40px;
-    right: 20px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--primary);
-    padding: 10px 16px;
-    font-size: 12px;
-    max-width: 300px;
-    animation: slideIn 0.2s ease;
-    z-index: 100;
-  }
-
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-
-  .notif-title { font-weight: 700; margin-bottom: 3px; color: var(--text); }
-  .notif-body { color: var(--text-dim); }
-
-  /* CONTEXT MENU */
-  .ctx-menu {
-    position: fixed;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    min-width: 180px;
-    z-index: 200;
-    box-shadow: 4px 4px 12px rgba(0,0,0,0.5);
-    display: none;
-  }
-  .ctx-menu.show { display: block; }
-  .ctx-item {
-    padding: 6px 16px;
-    font-size: 12px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .ctx-item:hover { background: #094771; }
-  .ctx-item .shortcut { color: var(--text-dim); font-size: 11px; }
-  .ctx-divider { height: 1px; background: var(--border); margin: 3px 0; }
-
-  /* LOGO in sidebar */
-  .app-logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 12px 4px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 4px;
-  }
-
-  .logo-keys {
-    display: flex;
-    gap: 2px;
-    align-items: center;
-  }
-
-  .key {
-    background: var(--bg4);
-    border: 1px solid #666;
-    border-bottom: 3px solid #555;
-    border-radius: 3px;
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--text);
-    font-family: 'Ubuntu Mono', monospace;
-    box-shadow: 0 1px 0 #333;
-  }
-
-  .key.orange { border-color: var(--orange); color: var(--orange); background: rgba(206,145,120,0.1); }
-
-  .logo-text {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .logo-text span { color: var(--primary); }
-
-  /* pulse animation for start */
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(81,154,186,0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(81,154,186,0); }
-    100% { box-shadow: 0 0 0 0 rgba(81,154,186,0); }
-  }
-
-  .pulse { animation: pulse 2s infinite; }
-
-  /* tab indicator */
-  .tab-icon { font-size: 11px; }
-  .tab-icon.ts { color: var(--primary); }
-  .tab-icon.md { color: #519aba; }
-
-</style>
-</head>
-<body>
-
-<!-- TITLE BAR -->
-<div class="titlebar">
-  <div class="titlebar-logo">
-    <svg viewBox="0 0 16 16" fill="none">
-      <path d="M11.5 1L15 4.5V15H5L1 11V1H11.5Z" fill="#0078D4" opacity="0.9"/>
-      <path d="M11 1V5H15" fill="none" stroke="#fff" stroke-opacity="0.5" stroke-width="0.8"/>
-    </svg>
-  </div>
-  <div class="titlebar-menus">
-    <div class="titlebar-menu">File</div>
-    <div class="titlebar-menu">Edit</div>
-    <div class="titlebar-menu">Selection</div>
-    <div class="titlebar-menu">View</div>
-    <div class="titlebar-menu">Go</div>
-    <div class="titlebar-menu">Run</div>
-    <div class="titlebar-menu">Terminal</div>
-    <div class="titlebar-menu">Help</div>
-  </div>
-  <div class="titlebar-center">type-overflow — test.ts — TypeOverflow</div>
-  <div class="titlebar-controls">
-    <div class="titlebar-btn">─</div>
-    <div class="titlebar-btn">□</div>
-    <div class="titlebar-btn close">✕</div>
-  </div>
-</div>
-
-<!-- TABS -->
-<div class="tabs">
-  <div class="tab active">
-    <span class="tab-icon ts">TS</span>
-    test.ts
-    <span class="close-x">✕</span>
-  </div>
-  <div class="tab" onclick="showLeaderboard()">
-    <span class="tab-icon md">MD</span>
-    leaderboard.md
-    <span class="close-x">✕</span>
-  </div>
-  <div class="tab">
-    <span style="color:#f1e05a;font-size:11px;">JS</span>
-    settings.js
-    <span class="close-x">✕</span>
-  </div>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-  <!-- ACTIVITY BAR -->
-  <div class="activity-bar">
-    <div class="activity-icon active">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M3 6h18M3 12h18M3 18h11"/>
-      </svg>
-    </div>
-    <div class="activity-icon" style="margin-top:8px;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-    </div>
-    <div class="activity-icon" style="margin-top:8px;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-      </svg>
-    </div>
-    <div class="activity-icon activity-bottom">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-      </svg>
-    </div>
-    <div class="activity-icon">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 5 19.07M12 12v1.5"/>
-      </svg>
-    </div>
-  </div>
-
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="app-logo">
-      <div class="logo-keys">
-        <div class="key orange">T</div>
-        <div class="key orange">/</div>
-        <div class="key orange">O</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Type Overflow - VSCode Typing Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #1e1e1e;
+        --bg2: #252526;
+        --bg3: #2d2d30;
+        --bg4: #3c3c3c;
+        --sidebar: #333333;
+        --titlebar: #3c3c3c;
+        --border: #474747;
+        --primary: #519aba;
+        --accent: #498ba7;
+        --green: #6a9955;
+        --yellow: #dcdcaa;
+        --orange: #ce9178;
+        --purple: #c586c0;
+        --blue: #4ec9b0;
+        --red: #f44747;
+        --text: #cccccc;
+        --text-dim: #858585;
+        --text-dark: #6e6e6e;
+        --tab-active: #1e1e1e;
+        --tab-inactive: #2d2d2d;
+        --correct: #6a9955;
+        --wrong: #f44747;
+        --cursor-color: #aeafad;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Ubuntu", "Droid Sans", sans-serif;
+        font-size: 13px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        user-select: none;
+      }
+
+      /* TITLE BAR */
+      .titlebar {
+        background: var(--titlebar);
+        height: 30px;
+        display: flex;
+        align-items: center;
+        gap: 0;
+        border-bottom: 1px solid #252526;
+        flex-shrink: 0;
+        position: relative;
+      }
+
+      .titlebar-logo {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .titlebar-logo svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .titlebar-menus {
+        display: flex;
+        align-items: center;
+        height: 100%;
+      }
+
+      .titlebar-menu {
+        padding: 0 8px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        color: var(--text);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .titlebar-menu:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .titlebar-center {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+        color: var(--text-dim);
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      .titlebar-controls {
+        margin-left: auto;
+        display: flex;
+        height: 100%;
+      }
+
+      .titlebar-btn {
+        width: 46px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 11px;
+      }
+      .titlebar-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .titlebar-btn.close:hover {
+        background: #e81123;
+      }
+
+      /* TABS */
+      .tabs {
+        background: var(--bg3);
+        display: flex;
+        align-items: flex-end;
+        height: 35px;
+        border-bottom: 1px solid #252526;
+        flex-shrink: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .tab {
+        height: 35px;
+        padding: 0 20px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        border-right: 1px solid var(--bg);
+        position: relative;
+        white-space: nowrap;
+        flex-shrink: 0;
+        color: var(--text-dim);
+        background: var(--tab-inactive);
+      }
+
+      .tab.active {
+        background: var(--tab-active);
+        color: var(--text);
+        border-top: 1px solid var(--primary);
+      }
+
+      .tab-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .tab .close-x {
+        position: absolute;
+        right: 4px;
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        opacity: 0;
+      }
+      .tab:hover .close-x {
+        opacity: 0.6;
+      }
+      .tab .close-x:hover {
+        background: var(--bg4);
+        opacity: 1;
+      }
+
+      /* LAYOUT */
+      .main {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* ACTIVITY BAR */
+      .activity-bar {
+        width: 48px;
+        background: var(--bg3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 4px;
+        border-right: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .activity-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        color: var(--text-dim);
+        font-size: 20px;
+      }
+      .activity-icon:hover,
+      .activity-icon.active {
+        color: var(--text);
+      }
+      .activity-icon.active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 2px;
+        height: 24px;
+        background: var(--text);
+      }
+
+      .activity-bottom {
+        margin-top: auto;
+        padding-bottom: 8px;
+      }
+
+      /* SIDEBAR */
+      .sidebar {
+        width: 240px;
+        background: var(--bg2);
+        border-right: 1px solid var(--border);
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .sidebar-header {
+        padding: 12px 12px 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-dim);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        flex-shrink: 0;
+      }
+
+      .sidebar-section {
+        padding: 2px 0;
+      }
+
+      .sidebar-item {
+        padding: 3px 12px 3px 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--text);
+        position: relative;
+      }
+      .sidebar-item:hover {
+        background: var(--bg4);
+      }
+      .sidebar-item.active {
+        background: #094771;
+      }
+      .sidebar-item .icon {
+        font-size: 14px;
+        width: 16px;
+        text-align: center;
+      }
+
+      .sidebar-folder {
+        padding: 3px 12px 3px 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .sidebar-folder:hover {
+        background: var(--bg4);
+      }
+
+      .sidebar-badge {
+        margin-left: auto;
+        background: var(--primary);
+        color: white;
+        font-size: 10px;
+        padding: 1px 5px;
+        border-radius: 10px;
+        min-width: 16px;
+        text-align: center;
+      }
+
+      .sidebar-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 8px 0;
+      }
+
+      /* EDITOR */
+      .editor {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--bg);
+      }
+
+      /* BREADCRUMB */
+      .breadcrumb {
+        padding: 4px 12px;
+        font-size: 12px;
+        color: var(--text-dim);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        background: var(--bg);
+      }
+      .breadcrumb span {
+        cursor: pointer;
+      }
+      .breadcrumb span:hover {
+        color: var(--text);
+      }
+      .breadcrumb .sep {
+        opacity: 0.5;
+      }
+
+      /* EDITOR CONTENT */
+      .editor-content {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+      }
+
+      .line-numbers {
+        width: 50px;
+        background: var(--bg);
+        color: var(--text-dark);
+        font-family: "Ubuntu Mono", monospace;
+        font-size: 13px;
+        line-height: 22px;
+        text-align: right;
+        padding: 20px 8px 0 0;
+        flex-shrink: 0;
+        user-select: none;
+        overflow: hidden;
+      }
+
+      .line-numbers div {
+        height: 22px;
+      }
+      .line-numbers .active-line {
+        color: var(--text);
+      }
+
+      .editor-main {
+        flex: 1;
+        padding: 20px 0 20px 12px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--bg4) transparent;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* CODE COMMENT HEADER */
+      .code-comment {
+        font-family: "Ubuntu Mono", monospace;
+        font-size: 13px;
+        line-height: 22px;
+        color: var(--green);
+        margin-bottom: 4px;
+      }
+
+      .code-keyword {
+        color: var(--purple);
+      }
+      .code-string {
+        color: var(--orange);
+      }
+      .code-func {
+        color: var(--yellow);
+      }
+      .code-var {
+        color: #9cdcfe;
+      }
+      .code-num {
+        color: #b5cea8;
+      }
+      .code-type {
+        color: var(--blue);
+      }
+
+      /* TYPING TEST AREA */
+      .test-container {
+        margin: 16px 0 0 0;
+        position: relative;
+      }
+
+      /* MINI TOOLBAR ABOVE TEST */
+      .test-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+
+      .toolbar-btn {
+        padding: 4px 10px;
+        font-size: 12px;
+        font-family: "Ubuntu Mono", monospace;
+        background: transparent;
+        border: none;
+        color: var(--text-dim);
+        cursor: pointer;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.15s;
+      }
+      .toolbar-btn:hover {
+        background: var(--bg3);
+        color: var(--text);
+      }
+      .toolbar-btn.active {
+        color: var(--primary);
+        background: rgba(81, 154, 186, 0.1);
+      }
+
+      .toolbar-sep {
+        width: 1px;
+        height: 16px;
+        background: var(--border);
+        margin: 0 4px;
+      }
+
+      .toolbar-btn .tag {
+        color: var(--text-dark);
+        font-size: 10px;
+      }
+
+      /* TIME DISPLAY */
+      .time-display {
+        font-family: "Ubuntu Mono", monospace;
+        font-size: 48px;
+        color: var(--primary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .time-display.hidden {
+        display: none;
+      }
+      .time-unit {
+        font-size: 14px;
+        color: var(--text-dim);
+      }
+
+      /* WORD DISPLAY */
+      #wordDisplay {
+        font-family: "Ubuntu Mono", monospace;
+        font-size: 22px;
+        line-height: 44px;
+        color: var(--text-dark);
+        position: relative;
+        outline: none;
+        max-height: 132px;
+        overflow: hidden;
+        cursor: text;
+      }
+
+      #wordDisplay .word {
+        display: inline-block;
+        margin-right: 12px;
+        position: relative;
+      }
+
+      #wordDisplay .letter {
+        transition: color 0.05s;
+      }
+      #wordDisplay .letter.correct {
+        color: var(--correct);
+      }
+      #wordDisplay .letter.wrong {
+        color: var(--wrong);
+        text-decoration: underline;
+        text-decoration-color: var(--wrong);
+      }
+      #wordDisplay .letter.pending {
+        color: var(--text-dark);
+      }
+
+      .cursor-caret {
+        display: inline-block;
+        width: 2px;
+        height: 22px;
+        background: var(--cursor-color);
+        vertical-align: middle;
+        position: absolute;
+        animation: blink 1s step-end infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* HIDDEN INPUT */
+      /* RESULTS */
+      #resultsPanel {
+        display: none;
+        font-family: "Ubuntu Mono", monospace;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .result-header {
+        color: var(--green);
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .result-box {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        padding: 12px 16px;
+        border-radius: 2px;
+      }
+
+      .result-label {
+        font-size: 10px;
+        color: var(--text-dim);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .result-value {
+        font-size: 32px;
+        color: var(--primary);
+        font-weight: 700;
+      }
+
+      .result-unit {
+        font-size: 11px;
+        color: var(--text-dim);
+      }
+
+      .retry-btn {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 8px 20px;
+        font-family: "Ubuntu Mono", monospace;
+        font-size: 13px;
+        cursor: pointer;
+        border-radius: 3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.15s;
+      }
+      .retry-btn:hover {
+        background: var(--bg4);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      /* START PROMPT */
+      #startPrompt {
+        color: var(--text-dim);
+        font-size: 13px;
+        font-family: "Ubuntu Mono", monospace;
+        margin-top: 8px;
+      }
+
+      /* STATUS BAR */
+      .statusbar {
+        height: 22px;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.7);
+        gap: 12px;
+        flex-shrink: 0;
+      }
+
+      .statusbar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .statusbar span {
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .statusbar span:hover {
+        background: rgba(0, 0, 0, 0.1);
+      }
+
+      /* WPM LIVE */
+      .live-wpm {
+        font-family: "Ubuntu Mono", monospace;
+        font-size: 20px;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+      }
+      .live-wpm .wpm-val {
+        color: var(--yellow);
+      }
+
+      /* Minimap */
+      .minimap {
+        width: 80px;
+        background: var(--bg);
+        border-left: 1px solid var(--border);
+        flex-shrink: 0;
+        padding: 20px 8px;
+        overflow: hidden;
+      }
+
+      .minimap-line {
+        height: 3px;
+        margin-bottom: 2px;
+        border-radius: 1px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .minimap-line.filled {
+        background: rgba(81, 154, 186, 0.15);
+      }
+      .minimap-line.active {
+        background: rgba(81, 154, 186, 0.4);
+      }
+
+      /* SCROLLBAR */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--bg4);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      /* NOTIFICATION */
+      .notification {
+        position: fixed;
+        bottom: 40px;
+        right: 20px;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--primary);
+        padding: 10px 16px;
+        font-size: 12px;
+        max-width: 300px;
+        animation: slideIn 0.2s ease;
+        z-index: 100;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .notif-title {
+        font-weight: 700;
+        margin-bottom: 3px;
+        color: var(--text);
+      }
+      .notif-body {
+        color: var(--text-dim);
+      }
+
+      /* CONTEXT MENU */
+      .ctx-menu {
+        position: fixed;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        min-width: 180px;
+        z-index: 200;
+        box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.5);
+        display: none;
+      }
+      .ctx-menu.show {
+        display: block;
+      }
+      .ctx-item {
+        padding: 6px 16px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .ctx-item:hover {
+        background: #094771;
+      }
+      .ctx-item .shortcut {
+        color: var(--text-dim);
+        font-size: 11px;
+      }
+      .ctx-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 3px 0;
+      }
+
+      /* LOGO in sidebar */
+      .app-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 12px 4px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 4px;
+      }
+
+      .logo-keys {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+      }
+
+      .key {
+        background: var(--bg4);
+        border: 1px solid #666;
+        border-bottom: 3px solid #555;
+        border-radius: 3px;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        font-weight: 700;
+        color: var(--text);
+        font-family: "Ubuntu Mono", monospace;
+        box-shadow: 0 1px 0 #333;
+      }
+
+      .key.orange {
+        border-color: var(--orange);
+        color: var(--orange);
+        background: rgba(206, 145, 120, 0.1);
+      }
+
+      .logo-text {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .logo-text span {
+        color: var(--primary);
+      }
+
+      /* pulse animation for start */
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(81, 154, 186, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 6px rgba(81, 154, 186, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(81, 154, 186, 0);
+        }
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      /* tab indicator */
+      .tab-icon {
+        font-size: 11px;
+      }
+      .tab-icon.ts {
+        color: var(--primary);
+      }
+      .tab-icon.md {
+        color: #519aba;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TITLE BAR -->
+    <div class="titlebar">
+      <div class="titlebar-logo">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path
+            d="M11.5 1L15 4.5V15H5L1 11V1H11.5Z"
+            fill="#0078D4"
+            opacity="0.9"
+          />
+          <path
+            d="M11 1V5H15"
+            fill="none"
+            stroke="#fff"
+            stroke-opacity="0.5"
+            stroke-width="0.8"
+          />
+        </svg>
       </div>
-      <div class="logo-text">Type<span>Overflow</span></div>
-    </div>
-
-    <div class="sidebar-header">Explorer</div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-folder" onclick="toggleFolder('folder1')">
-        <span id="arr1" style="font-size:9px;color:var(--text-dim);">▼</span>
-        <span style="font-size:12px;">📁</span> TYPE-OVERFLOW
+      <div class="titlebar-menus">
+        <div class="titlebar-menu">File</div>
+        <div class="titlebar-menu">Edit</div>
+        <div class="titlebar-menu">Selection</div>
+        <div class="titlebar-menu">View</div>
+        <div class="titlebar-menu">Go</div>
+        <div class="titlebar-menu">Run</div>
+        <div class="titlebar-menu">Terminal</div>
+        <div class="titlebar-menu">Help</div>
       </div>
-      <div id="folder1">
-        <div class="sidebar-item active" onclick="setMode('words')">
-          <span class="icon" style="color:var(--primary);">TS</span> test.ts
-        </div>
-        <div class="sidebar-item" onclick="setMode('quote')">
-          <span class="icon" style="color:#f1e05a;">JS</span> quotes.js
-        </div>
-        <div class="sidebar-item" onclick="setMode('code')">
-          <span class="icon" style="color:var(--blue);">TS</span> code-words.ts
-        </div>
+      <div class="titlebar-center">type-overflow — test.ts — TypeOverflow</div>
+      <div class="titlebar-controls">
+        <div class="titlebar-btn">─</div>
+        <div class="titlebar-btn">□</div>
+        <div class="titlebar-btn close">✕</div>
       </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-folder" onclick="toggleFolder('folder2')">
-        <span id="arr2" style="font-size:9px;color:var(--text-dim);">▼</span>
-        <span style="font-size:12px;">📁</span> CONFIG
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active">
+        <span class="tab-icon ts">TS</span>
+        test.ts
+        <span class="close-x">✕</span>
       </div>
-      <div id="folder2">
-        <div class="sidebar-item" onclick="setTime(15)">
-          <span class="icon" style="color:var(--green);">⚙</span> 15s.config
-        </div>
-        <div class="sidebar-item" onclick="setTime(30)">
-          <span class="icon" style="color:var(--green);">⚙</span> 30s.config
-        </div>
-        <div class="sidebar-item" onclick="setTime(60)">
-          <span class="icon" style="color:var(--green);">⚙</span> 60s.config
-        </div>
-        <div class="sidebar-item" onclick="setTime(120)">
-          <span class="icon" style="color:var(--green);">⚙</span> 120s.config
-        </div>
+      <div class="tab" onclick="showLeaderboard()">
+        <span class="tab-icon md">MD</span>
+        leaderboard.md
+        <span class="close-x">✕</span>
+      </div>
+      <div class="tab">
+        <span style="color: #f1e05a; font-size: 11px">JS</span>
+        settings.js
+        <span class="close-x">✕</span>
       </div>
     </div>
 
-    <div class="sidebar-divider"></div>
-
-    <div class="sidebar-item" onclick="showStats()">
-      <span class="icon" style="color:var(--yellow);">📊</span> stats.json
-      <span class="sidebar-badge" id="sessionBadge">0</span>
-    </div>
-    <div class="sidebar-item">
-      <span class="icon" style="color:var(--orange);">📝</span> README.md
-    </div>
-  </div>
-
-  <!-- EDITOR -->
-  <div class="editor">
-    <div class="breadcrumb">
-      <span>type-overflow</span>
-      <span class="sep">›</span>
-      <span>src</span>
-      <span class="sep">›</span>
-      <span id="breadcrumbFile" style="color:var(--text);">test.ts</span>
-    </div>
-
-    <div class="editor-content">
-      <!-- LINE NUMBERS -->
-      <div class="line-numbers" id="lineNumbers">
-        <div class="active-line">1</div>
-        <div>2</div>
-        <div>3</div>
-        <div>4</div>
-        <div>5</div>
-        <div>6</div>
-        <div>7</div>
-        <div>8</div>
-        <div>9</div>
-        <div>10</div>
-        <div>11</div>
-        <div>12</div>
-        <div>13</div>
-        <div>14</div>
-        <div>15</div>
-        <div>16</div>
-        <div>17</div>
-        <div>18</div>
-        <div>19</div>
-        <div>20</div>
-        <div>21</div>
-        <div>22</div>
-        <div>23</div>
-        <div>24</div>
-        <div>25</div>
+    <!-- MAIN -->
+    <div class="main">
+      <!-- ACTIVITY BAR -->
+      <div class="activity-bar">
+        <div class="activity-icon active">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M3 6h18M3 12h18M3 18h11" />
+          </svg>
+        </div>
+        <div class="activity-icon" style="margin-top: 8px">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+        </div>
+        <div class="activity-icon" style="margin-top: 8px">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
+            />
+          </svg>
+        </div>
+        <div class="activity-icon activity-bottom">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+        <div class="activity-icon">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.07 4.93A10 10 0 0 0 5 19.07M12 12v1.5" />
+          </svg>
+        </div>
       </div>
 
-      <!-- MAIN EDITOR AREA -->
-      <div class="editor-main" id="editorMain" tabindex="0">
-        <!-- CODE HEADER -->
-        <div id="codeHeader">
-          <div class="code-comment">// TypeOverflow — A VSCode-flavored typing speed test</div>
-          <div class="code-comment">// Press <span style="color:var(--yellow);">Ctrl+Enter</span> to start &nbsp; <span style="color:var(--yellow);">Ctrl+R</span> to restart</div>
-          <div style="font-family:'Ubuntu Mono',monospace;font-size:13px;line-height:22px;margin-bottom:4px;">
-            <span class="code-keyword">import</span> { <span class="code-var">TypingTest</span> } <span class="code-keyword">from</span> <span class="code-string">'@typeoverflow/core'</span><span style="color:var(--text);">;</span>
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="app-logo">
+          <div class="logo-keys">
+            <div class="key orange">T</div>
+            <div class="key orange">/</div>
+            <div class="key orange">O</div>
           </div>
-          <div style="font-family:'Ubuntu Mono',monospace;font-size:13px;line-height:22px;margin-bottom:4px;">
-            <span class="code-keyword">const</span> <span class="code-var">test</span> <span style="color:var(--text);">=</span> <span class="code-keyword">new</span> <span class="code-func">TypingTest</span><span style="color:var(--text);">({</span>
+          <div class="logo-text">Type<span>Overflow</span></div>
+        </div>
+
+        <div class="sidebar-header">Explorer</div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-folder" onclick="toggleFolder('folder1')">
+            <span id="arr1" style="font-size: 9px; color: var(--text-dim)"
+              >▼</span
+            >
+            <span style="font-size: 12px">📁</span> TYPE-OVERFLOW
           </div>
-          <div style="font-family:'Ubuntu Mono',monospace;font-size:13px;line-height:22px;padding-left:24px;margin-bottom:4px;">
-            <span class="code-var">mode</span><span style="color:var(--text);">:</span> <span class="code-string" id="modeDisplay">'words'</span><span style="color:var(--text);">,</span>
-          </div>
-          <div style="font-family:'Ubuntu Mono',monospace;font-size:13px;line-height:22px;padding-left:24px;margin-bottom:4px;">
-            <span class="code-var">time</span><span style="color:var(--text);">:</span> <span class="code-num" id="timeDisplay">30</span><span style="color:var(--text);">,</span>
-          </div>
-          <div style="font-family:'Ubuntu Mono',monospace;font-size:13px;line-height:22px;padding-left:24px;margin-bottom:4px;">
-            <span class="code-var">language</span><span style="color:var(--text);">:</span> <span class="code-string">'english'</span><span style="color:var(--text);">,</span>
-          </div>
-          <div style="font-family:'Ubuntu Mono',monospace;font-size:13px;line-height:22px;margin-bottom:16px;">
-            <span style="color:var(--text);">});</span>
+          <div id="folder1">
+            <div class="sidebar-item active" onclick="setMode('words')">
+              <span class="icon" style="color: var(--primary)">TS</span> test.ts
+            </div>
+            <div class="sidebar-item" onclick="setMode('quote')">
+              <span class="icon" style="color: #f1e05a">JS</span> quotes.js
+            </div>
+            <div class="sidebar-item" onclick="setMode('code')">
+              <span class="icon" style="color: var(--blue)">TS</span>
+              code-words.ts
+            </div>
           </div>
         </div>
 
-        <!-- TYPING TEST ZONE -->
-        <div class="test-container" id="testZone">
-          <!-- TOOLBAR -->
-          <div class="test-toolbar">
-            <span style="font-family:'Ubuntu Mono',monospace;font-size:11px;color:var(--text-dim);margin-right:4px;">// mode:</span>
-            <button class="toolbar-btn active" id="btn-words" onclick="setModeBtn('words')">words</button>
-            <button class="toolbar-btn" id="btn-quote" onclick="setModeBtn('quote')">quote</button>
-            <button class="toolbar-btn" id="btn-code" onclick="setModeBtn('code')">code</button>
-            <div class="toolbar-sep"></div>
-            <span style="font-family:'Ubuntu Mono',monospace;font-size:11px;color:var(--text-dim);margin-right:4px;">// time:</span>
-            <button class="toolbar-btn" id="btn-15" onclick="setTimeBtn(15)">15</button>
-            <button class="toolbar-btn active" id="btn-30" onclick="setTimeBtn(30)">30</button>
-            <button class="toolbar-btn" id="btn-60" onclick="setTimeBtn(60)">60</button>
-            <button class="toolbar-btn" id="btn-120" onclick="setTimeBtn(120)">120</button>
-            <div class="toolbar-sep"></div>
-            <button class="toolbar-btn" onclick="restartTest()" style="color:var(--text-dim);">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              restart
-            </button>
+        <div class="sidebar-section">
+          <div class="sidebar-folder" onclick="toggleFolder('folder2')">
+            <span id="arr2" style="font-size: 9px; color: var(--text-dim)"
+              >▼</span
+            >
+            <span style="font-size: 12px">📁</span> CONFIG
+          </div>
+          <div id="folder2">
+            <div class="sidebar-item" onclick="setTime(15)">
+              <span class="icon" style="color: var(--green)">⚙</span> 15s.config
+            </div>
+            <div class="sidebar-item" onclick="setTime(30)">
+              <span class="icon" style="color: var(--green)">⚙</span> 30s.config
+            </div>
+            <div class="sidebar-item" onclick="setTime(60)">
+              <span class="icon" style="color: var(--green)">⚙</span> 60s.config
+            </div>
+            <div class="sidebar-item" onclick="setTime(120)">
+              <span class="icon" style="color: var(--green)">⚙</span>
+              120s.config
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-item" onclick="showStats()">
+          <span class="icon" style="color: var(--yellow)">📊</span> stats.json
+          <span class="sidebar-badge" id="sessionBadge">0</span>
+        </div>
+        <div class="sidebar-item">
+          <span class="icon" style="color: var(--orange)">📝</span> README.md
+        </div>
+      </div>
+
+      <!-- EDITOR -->
+      <div class="editor">
+        <div class="breadcrumb">
+          <span>type-overflow</span>
+          <span class="sep">›</span>
+          <span>src</span>
+          <span class="sep">›</span>
+          <span id="breadcrumbFile" style="color: var(--text)">test.ts</span>
+        </div>
+
+        <div class="editor-content">
+          <!-- LINE NUMBERS -->
+          <div class="line-numbers" id="lineNumbers">
+            <div class="active-line">1</div>
+            <div>2</div>
+            <div>3</div>
+            <div>4</div>
+            <div>5</div>
+            <div>6</div>
+            <div>7</div>
+            <div>8</div>
+            <div>9</div>
+            <div>10</div>
+            <div>11</div>
+            <div>12</div>
+            <div>13</div>
+            <div>14</div>
+            <div>15</div>
+            <div>16</div>
+            <div>17</div>
+            <div>18</div>
+            <div>19</div>
+            <div>20</div>
+            <div>21</div>
+            <div>22</div>
+            <div>23</div>
+            <div>24</div>
+            <div>25</div>
           </div>
 
-          <!-- TIME COUNTDOWN -->
-          <div class="time-display" id="timeCountdown">
-            <span id="timeLeft">30</span><span class="time-unit">s</span>
-          </div>
-
-          <!-- LIVE WPM -->
-          <div class="live-wpm" id="liveWpmDisplay" style="display:none;">
-            <span class="code-comment">// wpm: </span><span class="wpm-val" id="liveWpm">0</span>
-          </div>
-
-          <!-- WORD DISPLAY -->
-          <div id="wordDisplay" onclick="focusInput()">
-            <!-- Words rendered by JS -->
-          </div>
-
-
-          <!-- START PROMPT -->
-          <div id="startPrompt">
-            <span style="color:var(--text-dim);">// </span>start typing to begin
-          </div>
-
-          <!-- RESULTS -->
-          <div id="resultsPanel">
-            <div class="result-header">// Test complete ✓ — <span id="resultDate" style="color:var(--text-dim);">today</span></div>
-            <div class="result-grid">
-              <div class="result-box">
-                <div class="result-label">wpm</div>
-                <div class="result-value" id="resWpm">0</div>
-                <div class="result-unit">words/min</div>
+          <!-- MAIN EDITOR AREA -->
+          <div class="editor-main" id="editorMain" tabindex="0">
+            <!-- CODE HEADER -->
+            <div id="codeHeader">
+              <div class="code-comment">
+                // TypeOverflow — A VSCode-flavored typing speed test
               </div>
-              <div class="result-box">
-                <div class="result-label">accuracy</div>
-                <div class="result-value" id="resAcc">0</div>
-                <div class="result-unit">percent</div>
+              <div class="code-comment">
+                // Press <span style="color: var(--yellow)">Ctrl+Enter</span> to
+                start &nbsp; <span style="color: var(--yellow)">Ctrl+R</span> to
+                restart
               </div>
-              <div class="result-box">
-                <div class="result-label">raw</div>
-                <div class="result-value" id="resRaw">0</div>
-                <div class="result-unit">words/min</div>
+              <div
+                style="
+                  font-family: &quot;Ubuntu Mono&quot;, monospace;
+                  font-size: 13px;
+                  line-height: 22px;
+                  margin-bottom: 4px;
+                "
+              >
+                <span class="code-keyword">import</span> {
+                <span class="code-var">TypingTest</span> }
+                <span class="code-keyword">from</span>
+                <span class="code-string">'@typeoverflow/core'</span
+                ><span style="color: var(--text)">;</span>
               </div>
-              <div class="result-box">
-                <div class="result-label">chars</div>
-                <div class="result-value" id="resChars">0</div>
-                <div class="result-unit">correct</div>
+              <div
+                style="
+                  font-family: &quot;Ubuntu Mono&quot;, monospace;
+                  font-size: 13px;
+                  line-height: 22px;
+                  margin-bottom: 4px;
+                "
+              >
+                <span class="code-keyword">const</span>
+                <span class="code-var">test</span>
+                <span style="color: var(--text)">=</span>
+                <span class="code-keyword">new</span>
+                <span class="code-func">TypingTest</span
+                ><span style="color: var(--text)">({</span>
+              </div>
+              <div
+                style="
+                  font-family: &quot;Ubuntu Mono&quot;, monospace;
+                  font-size: 13px;
+                  line-height: 22px;
+                  padding-left: 24px;
+                  margin-bottom: 4px;
+                "
+              >
+                <span class="code-var">mode</span
+                ><span style="color: var(--text)">:</span>
+                <span class="code-string" id="modeDisplay">'words'</span
+                ><span style="color: var(--text)">,</span>
+              </div>
+              <div
+                style="
+                  font-family: &quot;Ubuntu Mono&quot;, monospace;
+                  font-size: 13px;
+                  line-height: 22px;
+                  padding-left: 24px;
+                  margin-bottom: 4px;
+                "
+              >
+                <span class="code-var">time</span
+                ><span style="color: var(--text)">:</span>
+                <span class="code-num" id="timeDisplay">30</span
+                ><span style="color: var(--text)">,</span>
+              </div>
+              <div
+                style="
+                  font-family: &quot;Ubuntu Mono&quot;, monospace;
+                  font-size: 13px;
+                  line-height: 22px;
+                  padding-left: 24px;
+                  margin-bottom: 4px;
+                "
+              >
+                <span class="code-var">language</span
+                ><span style="color: var(--text)">:</span>
+                <span class="code-string">'english'</span
+                ><span style="color: var(--text)">,</span>
+              </div>
+              <div
+                style="
+                  font-family: &quot;Ubuntu Mono&quot;, monospace;
+                  font-size: 13px;
+                  line-height: 22px;
+                  margin-bottom: 16px;
+                "
+              >
+                <span style="color: var(--text)">});</span>
               </div>
             </div>
-            <button class="retry-btn" onclick="restartTest()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Try Again <span style="color:var(--text-dim);font-size:11px;">[Ctrl+R]</span>
-            </button>
+
+            <!-- TYPING TEST ZONE -->
+            <div class="test-container" id="testZone">
+              <!-- TOOLBAR -->
+              <div class="test-toolbar">
+                <span
+                  style="
+                    font-family: &quot;Ubuntu Mono&quot;, monospace;
+                    font-size: 11px;
+                    color: var(--text-dim);
+                    margin-right: 4px;
+                  "
+                  >// mode:</span
+                >
+                <button
+                  class="toolbar-btn active"
+                  id="btn-words"
+                  onclick="setModeBtn('words')"
+                >
+                  words
+                </button>
+                <button
+                  class="toolbar-btn"
+                  id="btn-quote"
+                  onclick="setModeBtn('quote')"
+                >
+                  quote
+                </button>
+                <button
+                  class="toolbar-btn"
+                  id="btn-code"
+                  onclick="setModeBtn('code')"
+                >
+                  code
+                </button>
+                <div class="toolbar-sep"></div>
+                <span
+                  style="
+                    font-family: &quot;Ubuntu Mono&quot;, monospace;
+                    font-size: 11px;
+                    color: var(--text-dim);
+                    margin-right: 4px;
+                  "
+                  >// time:</span
+                >
+                <button
+                  class="toolbar-btn"
+                  id="btn-15"
+                  onclick="setTimeBtn(15)"
+                >
+                  15
+                </button>
+                <button
+                  class="toolbar-btn active"
+                  id="btn-30"
+                  onclick="setTimeBtn(30)"
+                >
+                  30
+                </button>
+                <button
+                  class="toolbar-btn"
+                  id="btn-60"
+                  onclick="setTimeBtn(60)"
+                >
+                  60
+                </button>
+                <button
+                  class="toolbar-btn"
+                  id="btn-120"
+                  onclick="setTimeBtn(120)"
+                >
+                  120
+                </button>
+                <div class="toolbar-sep"></div>
+                <button
+                  class="toolbar-btn"
+                  onclick="restartTest()"
+                  style="color: var(--text-dim)"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M23 4v6h-6" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                  restart
+                </button>
+              </div>
+
+              <!-- TIME COUNTDOWN -->
+              <div class="time-display" id="timeCountdown">
+                <span id="timeLeft">30</span><span class="time-unit">s</span>
+              </div>
+
+              <!-- LIVE WPM -->
+              <div class="live-wpm" id="liveWpmDisplay" style="display: none">
+                <span class="code-comment">// wpm: </span
+                ><span class="wpm-val" id="liveWpm">0</span>
+              </div>
+
+              <!-- WORD DISPLAY -->
+              <div id="wordDisplay" onclick="focusInput()">
+                <!-- Words rendered by JS -->
+              </div>
+
+              <!-- START PROMPT -->
+              <div id="startPrompt">
+                <span style="color: var(--text-dim)">// </span>start typing to
+                begin
+              </div>
+
+              <!-- RESULTS -->
+              <div id="resultsPanel">
+                <div class="result-header">
+                  // Test complete ✓ —
+                  <span id="resultDate" style="color: var(--text-dim)"
+                    >today</span
+                  >
+                </div>
+                <div class="result-grid">
+                  <div class="result-box">
+                    <div class="result-label">wpm</div>
+                    <div class="result-value" id="resWpm">0</div>
+                    <div class="result-unit">words/min</div>
+                  </div>
+                  <div class="result-box">
+                    <div class="result-label">accuracy</div>
+                    <div class="result-value" id="resAcc">0</div>
+                    <div class="result-unit">percent</div>
+                  </div>
+                  <div class="result-box">
+                    <div class="result-label">raw</div>
+                    <div class="result-value" id="resRaw">0</div>
+                    <div class="result-unit">words/min</div>
+                  </div>
+                  <div class="result-box">
+                    <div class="result-label">chars</div>
+                    <div class="result-value" id="resChars">0</div>
+                    <div class="result-unit">correct</div>
+                  </div>
+                </div>
+                <button class="retry-btn" onclick="restartTest()">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M23 4v6h-6" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                  Try Again
+                  <span style="color: var(--text-dim); font-size: 11px"
+                    >[Ctrl+R]</span
+                  >
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- MINIMAP -->
+          <div class="minimap" id="minimap">
+            <!-- Generated by JS -->
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- MINIMAP -->
-      <div class="minimap" id="minimap">
-        <!-- Generated by JS -->
+    <!-- STATUS BAR -->
+    <div class="statusbar">
+      <span>⎇ main</span>
+      <span>0 ↓ 1 ↑</span>
+      <span id="statusMode">TypeScript</span>
+      <div class="statusbar-right">
+        <span id="statusWpm">WPM: —</span>
+        <span id="statusAcc">Acc: —</span>
+        <span>UTF-8</span>
+        <span>LF</span>
+        <span>Spaces: 2</span>
+        <span id="statusLn">Ln 1, Col 1</span>
+        <span>{ } TypeScript</span>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- STATUS BAR -->
-<div class="statusbar">
-  <span>⎇ main</span>
-  <span>0 ↓ 1 ↑</span>
-  <span id="statusMode">TypeScript</span>
-  <div class="statusbar-right">
-    <span id="statusWpm">WPM: —</span>
-    <span id="statusAcc">Acc: —</span>
-    <span>UTF-8</span>
-    <span>LF</span>
-    <span>Spaces: 2</span>
-    <span id="statusLn">Ln 1, Col 1</span>
-    <span>{ } TypeScript</span>
-  </div>
-</div>
+    <!-- CONTEXT MENU -->
+    <div class="ctx-menu" id="ctxMenu">
+      <div class="ctx-item" onclick="restartTest()">
+        Restart Test <span class="shortcut">Ctrl+R</span>
+      </div>
+      <div class="ctx-item" onclick="setTimeBtn(15)">
+        15s Mode <span class="shortcut">Ctrl+1</span>
+      </div>
+      <div class="ctx-item" onclick="setTimeBtn(30)">
+        30s Mode <span class="shortcut">Ctrl+2</span>
+      </div>
+      <div class="ctx-item" onclick="setTimeBtn(60)">
+        60s Mode <span class="shortcut">Ctrl+3</span>
+      </div>
+      <div class="ctx-divider"></div>
+      <div class="ctx-item">Copy WPM <span class="shortcut">Ctrl+C</span></div>
+      <div class="ctx-item">
+        View Stats <span class="shortcut">Ctrl+S</span>
+      </div>
+    </div>
 
-<!-- CONTEXT MENU -->
-<div class="ctx-menu" id="ctxMenu">
-  <div class="ctx-item" onclick="restartTest()">Restart Test <span class="shortcut">Ctrl+R</span></div>
-  <div class="ctx-item" onclick="setTimeBtn(15)">15s Mode <span class="shortcut">Ctrl+1</span></div>
-  <div class="ctx-item" onclick="setTimeBtn(30)">30s Mode <span class="shortcut">Ctrl+2</span></div>
-  <div class="ctx-item" onclick="setTimeBtn(60)">60s Mode <span class="shortcut">Ctrl+3</span></div>
-  <div class="ctx-divider"></div>
-  <div class="ctx-item">Copy WPM <span class="shortcut">Ctrl+C</span></div>
-  <div class="ctx-item">View Stats <span class="shortcut">Ctrl+S</span></div>
-</div>
+    <script>
+      // ═══════════════════════════════════════════════
+      //  WORD BANKS
+      // ═══════════════════════════════════════════════
+      const WORD_BANKS = {
+        words:
+          `the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us great between need large often hand place world still own right big high every near add food keep children between while last never under might small stand book heard city carry hard think far earth along both below country plant light voice power town fine drive stood warm free fresh fall round led kept plant felt town step group boy cut hard stood stay fast`.split(
+            " ",
+          ),
 
-<script>
-// ═══════════════════════════════════════════════
-//  WORD BANKS
-// ═══════════════════════════════════════════════
-const WORD_BANKS = {
-  words: `the quick brown fox jumps over lazy dog function const let var return import export default class extends interface type async await promise resolve reject catch error throw new this super static public private protected abstract readonly enum namespace module declare require from of in for while do if else switch case break continue try finally void null undefined boolean number string array object symbol bigint false true delete typeof instanceof void`.split(' '),
-  
-  quote: [
-    "the best way to predict the future is to invent it",
-    "code is like humor when you have to explain it it is bad",
-    "first solve the problem then write the code",
-    "any fool can write code that a computer can understand good programmers write code that humans can understand",
-    "experience is the name everyone gives to their mistakes",
-    "in order to be irreplaceable one must always be different",
-    "java is to javascript what car is to carpet",
-    "the only way to learn a new programming language is by writing programs in it",
-    "sometimes it pays to stay in bed on monday rather than spending the rest of the week debugging mondays code",
-    "programs must be written for people to read and only incidentally for machines to execute"
-  ],
+        quote: [
+          "the only way to do great work is to love what you do",
+          "in the middle of every difficulty lies opportunity",
+          "life is what happens when you are busy making other plans",
+          "the future belongs to those who believe in the beauty of their dreams",
+          "it does not matter how slowly you go as long as you do not stop",
+          "success is not final failure is not fatal it is the courage to continue that counts",
+          "you miss one hundred percent of the shots you do not take",
+          "whether you think you can or think you cannot you are right",
+          "the best time to plant a tree was twenty years ago the second best time is now",
+          "an unexamined life is not worth living",
+        ],
 
-  code: `function const let var return import export default class extends implements interface type async await promise resolve reject catch error throw new delete typeof instanceof void null undefined true false if else for while do switch case break continue try finally this super static public private protected abstract readonly enum namespace declare require from of in`.split(' ')
-};
+        code: `the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us`.split(
+          " ",
+        ),
+      };
 
-// ═══════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════
-let state = {
-  mode: 'words',
-  timeLimit: 30,
-  timeLeft: 30,
-  started: false,
-  finished: false,
-  words: [],
-  currentWordIndex: 0,
-  currentInput: '',
-  correctChars: 0,
-  wrongChars: 0,
-  correctWords: 0,
-  rawTyped: 0,
-  timer: null,
-  sessions: 0,
-  allErrors: 0,
-};
+      // ═══════════════════════════════════════════════
+      //  STATE
+      // ═══════════════════════════════════════════════
+      let state = {
+        mode: "words",
+        timeLimit: 30,
+        timeLeft: 30,
+        started: false,
+        finished: false,
+        words: [],
+        currentWordIndex: 0,
+        currentInput: "",
+        correctChars: 0,
+        wrongChars: 0,
+        typedWords: [],
+        correctWords: 0,
+        rawTyped: 0,
+        timer: null,
+        sessions: 0,
+        allErrors: 0,
+      };
 
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
-function init() {
-  generateWords();
-  renderWords();
-  renderMinimap();
-  focusInput();
-}
-
-function generateWords() {
-  if (state.mode === 'quote') {
-    const q = WORD_BANKS.quote[Math.floor(Math.random() * WORD_BANKS.quote.length)];
-    state.words = q.split(' ');
-  } else {
-    const bank = WORD_BANKS[state.mode] || WORD_BANKS.words;
-    const shuffled = [...bank].sort(() => Math.random() - 0.5);
-    state.words = [];
-    while (state.words.length < 80) {
-      state.words.push(...shuffled);
-    }
-    state.words = state.words.slice(0, 80);
-  }
-}
-
-// ═══════════════════════════════════════════════
-//  RENDER WORDS
-// ═══════════════════════════════════════════════
-function renderWords() {
-  const display = document.getElementById('wordDisplay');
-  display.innerHTML = '';
-
-  state.words.forEach((word, wi) => {
-    const wordEl = document.createElement('span');
-    wordEl.classList.add('word');
-    wordEl.id = `word-${wi}`;
-
-    word.split('').forEach((ch, ci) => {
-      const letter = document.createElement('span');
-      letter.classList.add('letter', 'pending');
-      letter.id = `l-${wi}-${ci}`;
-      letter.textContent = ch;
-      wordEl.appendChild(letter);
-    });
-
-    display.appendChild(wordEl);
-  });
-
-  placeCaret();
-}
-
-function placeCaret() {
-  // remove existing carets
-  document.querySelectorAll('.cursor-caret').forEach(c => c.remove());
-
-  // Only show caret before test starts
-  if (state.started) return;
-
-  const wordEl = document.getElementById(`word-${state.currentWordIndex}`);
-  if (!wordEl) return;
-
-  const inputLen = state.currentInput.length;
-  const letters = wordEl.querySelectorAll('.letter');
-
-  const caret = document.createElement('span');
-  caret.classList.add('cursor-caret');
-
-  if (inputLen < letters.length) {
-    wordEl.insertBefore(caret, letters[inputLen]);
-  } else {
-    wordEl.appendChild(caret);
-  }
-
-  // scroll into view
-  const display = document.getElementById('wordDisplay');
-  const top = wordEl.offsetTop;
-  if (top > 88) {
-    display.scrollTop = top - 44;
-  }
-}
-
-// ═══════════════════════════════════════════════
-//  INPUT HANDLING
-// ═══════════════════════════════════════════════
-function focusInput() {
-  document.getElementById('editorMain').focus();
-}
-
-document.addEventListener('keydown', function(e) {
-  if (state.finished) return;
-  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
-
-  if (e.key === ' ' || e.code === 'Space') {
-    e.preventDefault();
-    if (state.currentInput.length === 0) return; // ignore space with no input
-    if (!state.started) startTest();
-    submitWord();
-    return;
-  }
-
-  if (e.key === 'Backspace') {
-    e.preventDefault();
-    if (!state.started) return;
-    if (state.currentInput.length > 0) {
-      state.currentInput = state.currentInput.slice(0, -1);
-    } else if (state.currentWordIndex > 0) {
-      state.currentWordIndex--;
-      state.currentInput = state.words[state.currentWordIndex];
-      const wordEl = document.getElementById(`word-${state.currentWordIndex}`);
-      if (wordEl) {
-        wordEl.querySelectorAll('.letter').forEach(l => { l.className = 'letter pending'; });
+      // ═══════════════════════════════════════════════
+      //  INIT
+      // ═══════════════════════════════════════════════
+      function init() {
+        generateWords();
+        renderWords();
+        renderMinimap();
+        focusInput();
       }
-    }
-    updateWordDisplay();
-    return;
-  }
 
-  if (e.key.length !== 1) return;
-  e.preventDefault();
+      function generateWords() {
+        if (state.mode === "quote") {
+          const q =
+            WORD_BANKS.quote[
+              Math.floor(Math.random() * WORD_BANKS.quote.length)
+            ];
+          state.words = q.split(" ");
+        } else {
+          const bank = WORD_BANKS[state.mode] || WORD_BANKS.words;
+          const shuffled = [...bank].sort(() => Math.random() - 0.5);
+          state.words = [];
+          while (state.words.length < 80) {
+            state.words.push(...shuffled);
+          }
+          state.words = state.words.slice(0, 80);
+        }
+      }
 
-  if (!state.started) startTest();
+      // ═══════════════════════════════════════════════
+      //  RENDER WORDS
+      // ═══════════════════════════════════════════════
+      function renderWords() {
+        const display = document.getElementById("wordDisplay");
+        display.innerHTML = "";
+        display.style.display = "block";
 
-  const ch = e.key;
-  state.currentInput += ch;
-  state.rawTyped++;
+        state.words.forEach((word, wi) => {
+          const wordEl = document.createElement("span");
+          wordEl.classList.add("word");
+          wordEl.id = `word-${wi}`;
 
-  const word = state.words[state.currentWordIndex];
-  const ci = state.currentInput.length - 1;
+          word.split("").forEach((ch, ci) => {
+            const letter = document.createElement("span");
+            letter.classList.add("letter", "pending");
+            letter.id = `l-${wi}-${ci}`;
+            letter.textContent = ch;
+            wordEl.appendChild(letter);
+          });
 
-  if (ch === word[ci]) {
-    state.correctChars++;
-  } else {
-    state.wrongChars++;
-    state.allErrors++;
-  }
+          display.appendChild(wordEl);
+        });
 
-  updateWordDisplay();
-  updateLiveWpm();
-  updateStatusBar();
-});
+        placeCaret();
+      }
 
-function submitWord() {
-  const word = state.words[state.currentWordIndex];
-  const input = state.currentInput;
+      function placeCaret() {
+        // remove existing carets
+        document.querySelectorAll(".cursor-caret").forEach((c) => c.remove());
 
-  if (input === word) {
-    state.correctWords++;
-    markWordCorrect(state.currentWordIndex);
-  } else {
-    markWordWrong(state.currentWordIndex, input);
-  }
+        // Only show caret before test starts
+        if (state.started) return;
 
-  state.currentWordIndex++;
-  state.currentInput = '';
+        const wordEl = document.getElementById(
+          `word-${state.currentWordIndex}`,
+        );
+        if (!wordEl) return;
 
-  if (state.currentWordIndex >= state.words.length) {
-    endTest();
-    return;
-  }
+        const inputLen = state.currentInput.length;
+        const letters = wordEl.querySelectorAll(".letter");
 
-  updateWordDisplay();
-  scrollIfNeeded();
-}
+        const caret = document.createElement("span");
+        caret.classList.add("cursor-caret");
 
-function markWordCorrect(wi) {
-  const wordEl = document.getElementById(`word-${wi}`);
-  if (!wordEl) return;
-  wordEl.querySelectorAll('.letter').forEach(l => {
-    l.className = 'letter correct';
-  });
-}
+        if (inputLen < letters.length) {
+          wordEl.insertBefore(caret, letters[inputLen]);
+        } else {
+          wordEl.appendChild(caret);
+        }
 
-function markWordWrong(wi, input) {
-  const wordEl = document.getElementById(`word-${wi}`);
-  if (!wordEl) return;
-  const letters = wordEl.querySelectorAll('.letter');
-  const word = state.words[wi];
+        // scroll into view
+        const display = document.getElementById("wordDisplay");
+        const top = wordEl.offsetTop;
+        if (top > 88) {
+          display.scrollTop = top - 44;
+        }
+      }
 
-  letters.forEach((l, i) => {
-    if (i < input.length) {
-      l.className = 'letter ' + (input[i] === word[i] ? 'correct' : 'wrong');
-    } else {
-      l.className = 'letter wrong';
-    }
-  });
-}
+      // ═══════════════════════════════════════════════
+      //  INPUT HANDLING
+      // ═══════════════════════════════════════════════
+      function focusInput() {
+        document.getElementById("editorMain").focus();
+      }
 
-function updateWordDisplay() {
-  const word = state.words[state.currentWordIndex];
-  if (!word) return;
+      document.addEventListener("keydown", function (e) {
+        if (state.finished) return;
+        if (e.target.tagName === "BUTTON" || e.target.tagName === "A") return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-  const wordEl = document.getElementById(`word-${state.currentWordIndex}`);
-  if (!wordEl) return;
+        if (e.key === " " || e.code === "Space") {
+          e.preventDefault();
+          if (state.currentInput.length === 0) return; // ignore space with no input
+          if (!state.started) startTest();
+          submitWord();
+          return;
+        }
 
-  const letters = wordEl.querySelectorAll('.letter');
+        if (e.key === "Backspace") {
+          e.preventDefault();
+          if (!state.started) return;
+          if (state.currentInput.length > 0) {
+            state.currentInput = state.currentInput.slice(0, -1);
+          } else if (state.currentWordIndex > 0) {
+            state.currentWordIndex--;
+            state.currentInput = state.words[state.currentWordIndex];
+            const wordEl = document.getElementById(
+              `word-${state.currentWordIndex}`,
+            );
+            if (wordEl) {
+              wordEl.querySelectorAll(".letter").forEach((l) => {
+                l.className = "letter pending";
+              });
+            }
+          }
+          updateWordDisplay();
+          return;
+        }
 
-  letters.forEach((l, i) => {
-    if (i < state.currentInput.length) {
-      l.className = 'letter ' + (state.currentInput[i] === word[i] ? 'correct' : 'wrong');
-    } else {
-      l.className = 'letter pending';
-    }
-  });
+        if (e.key.length !== 1) return;
+        e.preventDefault();
 
-  placeCaret();
-}
+        if (!state.started) startTest();
 
-function scrollIfNeeded() {
-  const wordEl = document.getElementById(`word-${state.currentWordIndex}`);
-  if (wordEl) {
-    const display = document.getElementById('wordDisplay');
-    const top = wordEl.offsetTop;
-    if (top > 88) {
-      display.scrollTop = top - 44;
-    }
-  }
-}
+        const ch = e.key;
+        state.currentInput += ch;
+        state.rawTyped++;
 
-// ═══════════════════════════════════════════════
-//  TIMER
-// ═══════════════════════════════════════════════
-function startTest() {
-  state.started = true;
-  document.getElementById('startPrompt').style.display = 'none';
-  document.getElementById('liveWpmDisplay').style.display = 'block';
+        updateWordDisplay();
+        updateLiveWpm();
+        updateStatusBar();
+      });
 
-  state.timer = setInterval(() => {
-    state.timeLeft--;
-    document.getElementById('timeLeft').textContent = state.timeLeft;
+      function submitWord() {
+        const word = state.words[state.currentWordIndex];
+        const input = state.currentInput;
 
-    // Color warning
-    if (state.timeLeft <= 10) {
-      document.getElementById('timeCountdown').style.color = 'var(--red)';
-    } else if (state.timeLeft <= 20) {
-      document.getElementById('timeCountdown').style.color = 'var(--yellow)';
-    }
+        // Record for accuracy calculation
+        state.typedWords.push({ typed: input, expected: word });
 
-    updateLiveWpm();
+        if (input === word) {
+          state.correctWords++;
+          markWordCorrect(state.currentWordIndex);
+        } else {
+          markWordWrong(state.currentWordIndex, input);
+        }
 
-    if (state.timeLeft <= 0) endTest();
-  }, 1000);
-}
+        state.currentWordIndex++;
+        state.currentInput = "";
 
-function endTest() {
-  clearInterval(state.timer);
-  state.finished = true;
-  state.sessions++;
+        if (state.currentWordIndex >= state.words.length) {
+          endTest();
+          return;
+        }
 
-  document.getElementById('wordDisplay').style.display = 'none';
-  document.getElementById('timeCountdown').style.display = 'none';
-  document.getElementById('liveWpmDisplay').style.display = 'none';
-  document.getElementById('startPrompt').style.display = 'none';
+        updateWordDisplay();
+        scrollIfNeeded();
+      }
 
-  const elapsed = state.timeLimit - state.timeLeft;
-  const minutes = (elapsed || state.timeLimit) / 60;
-  const wpm = Math.round(state.correctWords / (minutes || 1));
-  const raw = Math.round(state.rawTyped / 5 / (minutes || 1));
-  const total = state.correctChars + state.wrongChars;
-  const acc = total > 0 ? Math.round((state.correctChars / total) * 100) : 100;
+      function markWordCorrect(wi) {
+        const wordEl = document.getElementById(`word-${wi}`);
+        if (!wordEl) return;
+        wordEl.querySelectorAll(".letter").forEach((l) => {
+          l.className = "letter correct";
+        });
+      }
 
-  document.getElementById('resWpm').textContent = wpm;
-  document.getElementById('resAcc').textContent = acc;
-  document.getElementById('resRaw').textContent = raw;
-  document.getElementById('resChars').textContent = state.correctChars;
-  document.getElementById('resultDate').textContent = new Date().toLocaleTimeString();
-  document.getElementById('resultsPanel').style.display = 'block';
+      function markWordWrong(wi, input) {
+        const wordEl = document.getElementById(`word-${wi}`);
+        if (!wordEl) return;
+        const letters = wordEl.querySelectorAll(".letter");
+        const word = state.words[wi];
 
-  document.getElementById('statusWpm').textContent = `WPM: ${wpm}`;
-  document.getElementById('statusAcc').textContent = `Acc: ${acc}%`;
-  document.getElementById('sessionBadge').textContent = state.sessions;
+        letters.forEach((l, i) => {
+          if (i < input.length) {
+            l.className =
+              "letter " + (input[i] === word[i] ? "correct" : "wrong");
+          } else {
+            l.className = "letter wrong";
+          }
+        });
+      }
 
-  showNotification('Test Complete', `${wpm} WPM · ${acc}% accuracy`);
-}
+      function updateWordDisplay() {
+        const word = state.words[state.currentWordIndex];
+        if (!word) return;
 
-// ═══════════════════════════════════════════════
-//  LIVE WPM
-// ═══════════════════════════════════════════════
-function updateLiveWpm() {
-  const elapsed = state.timeLimit - state.timeLeft;
-  if (elapsed === 0) return;
-  const wpm = Math.round(state.correctWords / (elapsed / 60));
-  document.getElementById('liveWpm').textContent = wpm;
-}
+        const wordEl = document.getElementById(
+          `word-${state.currentWordIndex}`,
+        );
+        if (!wordEl) return;
 
-function updateStatusBar() {
-  const col = state.currentInput.length + 1;
-  const ln = state.currentWordIndex + 1;
-  document.getElementById('statusLn').textContent = `Ln ${ln}, Col ${col}`;
-}
+        const letters = wordEl.querySelectorAll(".letter");
 
-// ═══════════════════════════════════════════════
-//  RESTART
-// ═══════════════════════════════════════════════
-function restartTest() {
-  clearInterval(state.timer);
-  const { mode, timeLimit, sessions } = state;
+        letters.forEach((l, i) => {
+          if (i < state.currentInput.length) {
+            l.className =
+              "letter " +
+              (state.currentInput[i] === word[i] ? "correct" : "wrong");
+          } else {
+            l.className = "letter pending";
+          }
+        });
 
-  state = {
-    mode, timeLimit,
-    timeLeft: timeLimit,
-    started: false, finished: false,
-    words: [], currentWordIndex: 0, currentInput: '',
-    correctChars: 0, wrongChars: 0, correctWords: 0,
-    rawTyped: 0, timer: null, sessions, allErrors: 0
-  };
+        placeCaret();
+      }
 
-  document.getElementById('timeLeft').textContent = timeLimit;
-  document.getElementById('timeCountdown').style.color = 'var(--primary)';
-  document.getElementById('timeCountdown').style.display = 'flex';
-  document.getElementById('wordDisplay').style.display = 'block';
-  document.getElementById('resultsPanel').style.display = 'none';
-  document.getElementById('startPrompt').style.display = 'block';
-  document.getElementById('liveWpmDisplay').style.display = 'none';
-  document.getElementById('statusWpm').textContent = 'WPM: —';
-  document.getElementById('statusAcc').textContent = 'Acc: —';
+      function scrollIfNeeded() {
+        const wordEl = document.getElementById(
+          `word-${state.currentWordIndex}`,
+        );
+        if (wordEl) {
+          const display = document.getElementById("wordDisplay");
+          const top = wordEl.offsetTop;
+          if (top > 88) {
+            display.scrollTop = top - 44;
+          }
+        }
+      }
 
-  generateWords();
-  renderWords();
-  // Force focus back after a tick so DOM is settled
-  setTimeout(() => document.getElementById('editorMain').focus(), 10);
-}
+      // ═══════════════════════════════════════════════
+      //  TIMER
+      // ═══════════════════════════════════════════════
+      function startTest() {
+        state.started = true;
+        document.getElementById("startPrompt").style.display = "none";
+        document.getElementById("liveWpmDisplay").style.display = "block";
 
-// ═══════════════════════════════════════════════
-//  MODE / TIME SETTERS
-// ═══════════════════════════════════════════════
-function setModeBtn(m) {
-  state.mode = m;
-  document.getElementById('modeDisplay').textContent = `'${m}'`;
-  document.getElementById('breadcrumbFile').textContent = m === 'words' ? 'test.ts' : m === 'quote' ? 'quotes.js' : 'code-words.ts';
-  document.querySelectorAll('[id^="btn-words"],[id^="btn-quote"],[id^="btn-code"]').forEach(b => b.classList.remove('active'));
-  document.getElementById(`btn-${m}`)?.classList.add('active');
-  restartTest();
-}
+        state.timer = setInterval(() => {
+          state.timeLeft--;
+          document.getElementById("timeLeft").textContent = state.timeLeft;
 
-function setTimeBtn(t) {
-  state.timeLimit = t;
-  document.getElementById('timeDisplay').textContent = t;
-  document.querySelectorAll('[id^="btn-15"],[id^="btn-30"],[id^="btn-60"],[id^="btn-120"]').forEach(b => b.classList.remove('active'));
-  document.getElementById(`btn-${t}`)?.classList.add('active');
-  restartTest();
-}
+          // Color warning
+          if (state.timeLeft <= 10) {
+            document.getElementById("timeCountdown").style.color = "var(--red)";
+          } else if (state.timeLeft <= 20) {
+            document.getElementById("timeCountdown").style.color =
+              "var(--yellow)";
+          }
 
-function setMode(m) { setModeBtn(m); }
-function setTime(t) { setTimeBtn(t); }
+          updateLiveWpm();
 
-// ═══════════════════════════════════════════════
-//  MINIMAP
-// ═══════════════════════════════════════════════
-function renderMinimap() {
-  const minimap = document.getElementById('minimap');
-  minimap.innerHTML = '';
-  for (let i = 0; i < 40; i++) {
-    const line = document.createElement('div');
-    line.classList.add('minimap-line');
-    const w = Math.random();
-    if (w > 0.7) line.classList.add('filled');
-    if (i < 3) line.classList.add('active');
-    minimap.appendChild(line);
-  }
-}
+          if (state.timeLeft <= 0) endTest();
+        }, 1000);
+      }
 
-// ═══════════════════════════════════════════════
-//  FOLDER TOGGLE
-// ═══════════════════════════════════════════════
-function toggleFolder(id) {
-  const el = document.getElementById(id);
-  const arr = document.getElementById('arr' + id.replace('folder',''));
-  if (el.style.display === 'none') {
-    el.style.display = 'block';
-    arr.textContent = '▼';
-  } else {
-    el.style.display = 'none';
-    arr.textContent = '▶';
-  }
-}
+      function endTest() {
+        clearInterval(state.timer);
+        state.finished = true;
+        state.sessions++;
 
-// ═══════════════════════════════════════════════
-//  NOTIFICATIONS
-// ═══════════════════════════════════════════════
-function showNotification(title, body) {
-  const n = document.createElement('div');
-  n.className = 'notification';
-  n.innerHTML = `<div class="notif-title">${title}</div><div class="notif-body">${body}</div>`;
-  document.body.appendChild(n);
-  setTimeout(() => n.remove(), 4000);
-}
+        document.getElementById("wordDisplay").style.display = "none";
+        document.getElementById("timeCountdown").style.display = "none";
+        document.getElementById("liveWpmDisplay").style.display = "none";
+        document.getElementById("startPrompt").style.display = "none";
 
-// ═══════════════════════════════════════════════
-//  CONTEXT MENU
-// ═══════════════════════════════════════════════
-document.addEventListener('contextmenu', e => {
-  e.preventDefault();
-  const menu = document.getElementById('ctxMenu');
-  menu.style.left = e.clientX + 'px';
-  menu.style.top = e.clientY + 'px';
-  menu.classList.add('show');
-});
+        const elapsed = state.timeLimit - state.timeLeft;
+        const minutes = (elapsed || state.timeLimit) / 60;
+        const wpm = Math.round(state.correctWords / (minutes || 1));
+        const raw = Math.round(state.rawTyped / 5 / (minutes || 1));
+        let correct = 0,
+          total = 0;
+        state.typedWords.forEach(({ typed, expected }) => {
+          const len = Math.max(typed.length, expected.length);
+          for (let i = 0; i < len; i++) {
+            total++;
+            if (typed[i] === expected[i]) correct++;
+          }
+        });
+        const acc = total > 0 ? Math.round((correct / total) * 100) : 100;
 
-document.addEventListener('click', () => {
-  document.getElementById('ctxMenu').classList.remove('show');
-});
+        document.getElementById("resWpm").textContent = wpm;
+        document.getElementById("resAcc").textContent = acc;
+        document.getElementById("resRaw").textContent = raw;
+        document.getElementById("resChars").textContent = state.correctChars;
+        document.getElementById("resultDate").textContent =
+          new Date().toLocaleTimeString();
+        document.getElementById("resultsPanel").style.display = "block";
 
-// ═══════════════════════════════════════════════
-//  KEYBOARD SHORTCUTS
-// ═══════════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey || e.metaKey) {
-    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); restartTest(); }
-    if (e.key === 'Enter') { e.preventDefault(); focusInput(); }
-    if (e.key === '1') { e.preventDefault(); setTimeBtn(15); }
-    if (e.key === '2') { e.preventDefault(); setTimeBtn(30); }
-    if (e.key === '3') { e.preventDefault(); setTimeBtn(60); }
-    if (e.key === '4') { e.preventDefault(); setTimeBtn(120); }
-  }
-  if (e.key === 'Escape') restartTest();
-});
+        document.getElementById("statusWpm").textContent = `WPM: ${wpm}`;
+        document.getElementById("statusAcc").textContent = `Acc: ${acc}%`;
+        document.getElementById("sessionBadge").textContent = state.sessions;
 
-// ═══════════════════════════════════════════════
-//  MISC
-// ═══════════════════════════════════════════════
-function showStats() {
-  showNotification('Stats', `Sessions: ${state.sessions} | Errors: ${state.allErrors}`);
-}
+        showNotification("Test Complete", `${wpm} WPM · ${acc}% accuracy`);
+      }
 
-function showLeaderboard() {
-  showNotification('Leaderboard', 'Coming soon... push your code first!');
-}
+      // ═══════════════════════════════════════════════
+      //  LIVE WPM
+      // ═══════════════════════════════════════════════
+      function updateLiveWpm() {
+        const elapsed = state.timeLimit - state.timeLeft;
+        if (elapsed === 0) return;
+        const wpm = Math.round(state.correctWords / (elapsed / 60));
+        document.getElementById("liveWpm").textContent = wpm;
+      }
 
-// Prevent accidental tab navigation
-document.getElementById('hiddenInput').addEventListener('keydown', e => {
-  if (e.key === 'Tab') e.preventDefault();
-});
+      function updateStatusBar() {
+        const col = state.currentInput.length + 1;
+        const ln = state.currentWordIndex + 1;
+        document.getElementById("statusLn").textContent =
+          `Ln ${ln}, Col ${col}`;
+      }
 
-// ═══════════════════════════════════════════════
-//  START
-// ═══════════════════════════════════════════════
-init();
-</script>
-</body>
+      // ═══════════════════════════════════════════════
+      //  RESTART
+      // ═══════════════════════════════════════════════
+      function restartTest() {
+        clearInterval(state.timer);
+        const { mode, timeLimit, sessions } = state;
+
+        state = {
+          mode,
+          timeLimit,
+          timeLeft: timeLimit,
+          started: false,
+          finished: false,
+          words: [],
+          currentWordIndex: 0,
+          currentInput: "",
+          correctChars: 0,
+          wrongChars: 0,
+          correctWords: 0,
+          typedWords: [],
+          rawTyped: 0,
+          timer: null,
+          sessions,
+          allErrors: 0,
+        };
+
+        document.getElementById("timeLeft").textContent = timeLimit;
+        document.getElementById("timeCountdown").style.color = "var(--primary)";
+        document.getElementById("timeCountdown").style.display = "flex";
+        document.getElementById("wordDisplay").style.display = "block";
+        document.getElementById("resultsPanel").style.display = "none";
+        document.getElementById("startPrompt").style.display = "block";
+        document.getElementById("liveWpmDisplay").style.display = "none";
+        document.getElementById("statusWpm").textContent = "WPM: —";
+        document.getElementById("statusAcc").textContent = "Acc: —";
+
+        generateWords();
+        renderWords();
+        // Force focus back after a tick so DOM is settled
+        setTimeout(() => document.getElementById("editorMain").focus(), 10);
+      }
+
+      // ═══════════════════════════════════════════════
+      //  MODE / TIME SETTERS
+      // ═══════════════════════════════════════════════
+      function setModeBtn(m) {
+        state.mode = m;
+        document.getElementById("modeDisplay").textContent = `'${m}'`;
+        document.getElementById("breadcrumbFile").textContent =
+          m === "words"
+            ? "test.ts"
+            : m === "quote"
+              ? "quotes.js"
+              : "code-words.ts";
+        document
+          .querySelectorAll(
+            '[id^="btn-words"],[id^="btn-quote"],[id^="btn-code"]',
+          )
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById(`btn-${m}`)?.classList.add("active");
+        restartTest();
+      }
+
+      function setTimeBtn(t) {
+        state.timeLimit = t;
+        document.getElementById("timeDisplay").textContent = t;
+        document
+          .querySelectorAll(
+            '[id^="btn-15"],[id^="btn-30"],[id^="btn-60"],[id^="btn-120"]',
+          )
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById(`btn-${t}`)?.classList.add("active");
+        restartTest();
+      }
+
+      function setMode(m) {
+        setModeBtn(m);
+      }
+      function setTime(t) {
+        setTimeBtn(t);
+      }
+
+      // ═══════════════════════════════════════════════
+      //  MINIMAP
+      // ═══════════════════════════════════════════════
+      function renderMinimap() {
+        const minimap = document.getElementById("minimap");
+        minimap.innerHTML = "";
+        for (let i = 0; i < 40; i++) {
+          const line = document.createElement("div");
+          line.classList.add("minimap-line");
+          const w = Math.random();
+          if (w > 0.7) line.classList.add("filled");
+          if (i < 3) line.classList.add("active");
+          minimap.appendChild(line);
+        }
+      }
+
+      // ═══════════════════════════════════════════════
+      //  FOLDER TOGGLE
+      // ═══════════════════════════════════════════════
+      function toggleFolder(id) {
+        const el = document.getElementById(id);
+        const arr = document.getElementById("arr" + id.replace("folder", ""));
+        if (el.style.display === "none") {
+          el.style.display = "block";
+          arr.textContent = "▼";
+        } else {
+          el.style.display = "none";
+          arr.textContent = "▶";
+        }
+      }
+
+      // ═══════════════════════════════════════════════
+      //  NOTIFICATIONS
+      // ═══════════════════════════════════════════════
+      function showNotification(title, body) {
+        const n = document.createElement("div");
+        n.className = "notification";
+        n.innerHTML = `<div class="notif-title">${title}</div><div class="notif-body">${body}</div>`;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 4000);
+      }
+
+      // ═══════════════════════════════════════════════
+      //  CONTEXT MENU
+      // ═══════════════════════════════════════════════
+      document.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const menu = document.getElementById("ctxMenu");
+        menu.style.left = e.clientX + "px";
+        menu.style.top = e.clientY + "px";
+        menu.classList.add("show");
+      });
+
+      document.addEventListener("click", () => {
+        document.getElementById("ctxMenu").classList.remove("show");
+      });
+
+      // ═══════════════════════════════════════════════
+      //  KEYBOARD SHORTCUTS
+      // ═══════════════════════════════════════════════
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          if (e.key === "r" || e.key === "R") {
+            e.preventDefault();
+            restartTest();
+          }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            focusInput();
+          }
+          if (e.key === "1") {
+            e.preventDefault();
+            setTimeBtn(15);
+          }
+          if (e.key === "2") {
+            e.preventDefault();
+            setTimeBtn(30);
+          }
+          if (e.key === "3") {
+            e.preventDefault();
+            setTimeBtn(60);
+          }
+          if (e.key === "4") {
+            e.preventDefault();
+            setTimeBtn(120);
+          }
+        }
+        if (e.key === "Escape") restartTest();
+      });
+
+      // ═══════════════════════════════════════════════
+      //  MISC
+      // ═══════════════════════════════════════════════
+      function showStats() {
+        showNotification(
+          "Stats",
+          `Sessions: ${state.sessions} | Errors: ${state.allErrors}`,
+        );
+      }
+
+      function showLeaderboard() {
+        showNotification("Leaderboard", "Coming soon... push your code first!");
+      }
+
+      // Prevent accidental tab navigation
+      document
+        .getElementById("hiddenInput")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Tab") e.preventDefault();
+        });
+
+      // ═══════════════════════════════════════════════
+      //  START
+      // ═══════════════════════════════════════════════
+      init();
+    </script>
+  </body>
 </html>
